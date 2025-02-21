@@ -498,31 +498,55 @@ class UserController extends Controller
     {
         try {
             DB::beginTransaction();
+
+            
+            $data = $request->validate([
+                'file' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
+            ]);
             
             $user = User::find($request->user_id);
             if (!$user) {
                 return back()->with('invalid', 'The input is invalid. Please try again!');
             }
+            
+            $image_url = null;
+            $image_description = null;
 
-            
-            
             if ($request->hasFile('file')) {
                 $file = $request['file'];
+
+                $file_id = Profile::where('id', $user->profile_id)->first()->file_id;
+                $file_id = File::where('id', $file_id)->first();
+                
                 $fileFormat = $user->profile_id === null
                 ? $fileController->store($request)
-                : $fileController->edit($request, Profile::find($user->profile_id)?->files->path);
+                : $fileController->edit($request, $file_id->description);
+                
+                $image_url = $fileFormat->original['data']['preview_url'];
+                $image_description = $fileFormat->original['data']['id'];
             }
-            $image_url = $fileFormat->original['data']['preview_url'];
             
             //@dd($request->all(), Profile::find($user->profile_id)?->files->path);
         
-
-            $user->fill($request->only([
+            $user->update($request->only([
                 'firstname', 'lastname', 'middlename', 'email', 'phone', 'gender',
                 'address', 'school', 'student_no', 'emergency_contact_fullname',
                 'emergency_contact_number', 'emergency_contact_address'
             ]));
-        
+
+            $user->update([
+                'school_id' => $request->school,
+            ]);
+            
+            $profile_records = Profile::where('id', $user->profile_id)->first();
+
+            $file_records = File::where('id', $profile_records->id)->first();
+
+            $file_records->update([
+                'description' => $image_description ?? $file_records->description,
+                'path' => $image_url ?? $file_records->path,
+            ]);
+            
             $user->save();
         
             DB::commit();

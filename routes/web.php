@@ -11,8 +11,10 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\RankingController;
+use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SearchController;
 use App\Models\Notification;
+use App\Models\School;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Broadcast;
@@ -59,37 +61,44 @@ Route::middleware('guest')->group(function () {
 //register post method
 
 Route::middleware(['auth', 'user_role:admin'])->group(function (){
+
+    //Route::resource('admin.schools', SchoolController::class);
+    Route::get('/admin/schools', [SchoolController::class, 'index'])->name('admin.schools');
+    
+    Route::get('/admin/schools/{id}', [SchoolController::class, 'show'])->name('admin.schools.show');
+    Route::put('/admin/schools/{id}', [SchoolController::class, 'update'])->name('admin.schools.show.update');
+    
     Route::get('/admin/dashboard', [UserController::class, 'showAdminDashboard'])->name('admin.dashboard');
     Route::get('/admin/users', [UserController::class, 'showAdminUsers'])->name('admin.users');
-
+    
     //admin user dtr page
-
+    
     Route::get('/admin/users/create', [AuthController::class, 'showAdminUsersCreate'])->name('admin.users.create');
 
     Route::post('/admin/users/create', [AuthController::class, 'showAdminUsersCreatePost'])->name('admin.users.create.post');
 
     //users specific profile
     Route::get('/admin/users/{id}', [UserController::class, 'showUserDetails'])->name('admin.users.details');
-
+    
     Route::get('/admin/users/{id}/edit', [UserController::class, 'showEditUsers'])->name('admin.users.details.edit');
-
+    
     Route::post('/admin/users/{id}/edit', [UserController::class, 'showEditUsersPost'])->name('admin.users.details.edit.post');
-
+    
     Route::get('/admin/users/{id}/dtr', [DtrSummaryController::class, 'showAdminUserDtr'])->name('admin.users.dtr');
-
+    
     Route::post('/admin/users/{id}/dtr/post', [DtrSummaryController::class, 'ShowAdminUserDtrPagination'])->name('admin.users.dtr.post');
-
-
+    
+    
     //admin history
     Route::get('/admin/history', [UserController::class, 'showAdminHistory'])->name('admin.histories');
-
+    
     //admin profile
     Route::get('/admin/profile', [UserController::class, 'showAdminProfile'])->name('admin.profile');
-
+    
     Route::get('/admin/approvals', [UserController::class, 'showAdminApprovals'])->name('admin.approvals');
-
+    
     Route::get('/admin/approvals/{id}', [DtrSummaryController::class, 'showAdminUserApprovalDtr'])->name('admin.approvals.show');
-
+    
     Route::post('/admin-dtr-approve', [DtrDownloadRequestController::class, 'approve'])->name('admin.dtr.approve');
     
     Route::post('/admin-dtr-batch-approve', [DtrDownloadRequestController::class, 'batchApprove'])->name('admin.dtr.batch.approve');
@@ -104,6 +113,9 @@ Route::middleware(['auth', 'user_role:admin'])->group(function (){
     Route::post('/history', [UserController::class, 'AdminScannerTimeCheck'])->name('admin.history.time.check');
     Route::post('admin/history/search', [SearchController::class, 'searchHistory'])->name('admin.history.search');
 });
+
+Route::view('/admin/school/create', 'admin.schools.create')->name('admin.schools.create');
+Route::post('/admin/schools/create/post', [SchoolController::class, 'store'])->name('admin.schools.create.post');
 
 Route::middleware(['auth', 'user_role:user'])->group(function () {
 
@@ -148,8 +160,9 @@ Route::middleware(['auth', 'user_role:user'])->group(function () {
 Route::put('/update', [UserController::class, 'update'])->name('users.settings.update');
 
 Route::post('/send-notification', [NotificationController::class, 'sendAdminNotification'])->name('user.send.request.download.notification');
- //logout post method
- Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+//logout post method
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 //admin history post method
 Route::post('/download-pdf', [PDFController::class, 'download'])->name('download.pdf');
@@ -222,7 +235,6 @@ Route::post("/pusher/auth", function (Request $request) {
 Route::view('/read-form', 'admin.files.show')->name('admin.files.show');
 Route::view('/upload-form', 'admin.files.index')->name('admin.files');
 Route::view('/forbidden', 'forbidden')->name('forbidden');
-Route::view('/admin/schools', 'admin.schools.index')->name('admin.schools');
 
 //files
 //Route::resource('/files', FileController::class);

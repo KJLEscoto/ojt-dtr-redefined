@@ -27,13 +27,21 @@
                     <div class="grid grid-cols-2 w-full gap-5">
                         <x-form.input label="Gender" name_id="gender" placeholder="Select" small type="select"
                             :options="['male' => 'Male', 'female' => 'Female']" />
-                        <x-form.input label="Phone" type="text" name_id="phone" placeholder="+63"
-                            labelClass="text-lg font-medium" small />
+                        @php
+                            $schools = \App\Models\School::get();
+
+                            $school_options = [];
+                            foreach($schools as $school){
+                                $school_options[] = $school['description'];
+                            }
+                        @endphp
+                        <x-form.input label="School" name_id="school" placeholder="Select" small type="select"
+                            :options="$school_options" />
                     </div>
                     <div class="grid grid-cols-2 w-full gap-5">
                         <x-form.input label="Address" type="text" name_id="address" placeholder="Davao City"
                             labelClass="text-lg font-medium" small />
-                        <x-form.input label="School" type="text" name_id="school" placeholder="School name"
+                        <x-form.input label="Student No" type="text" name_id="student_no" placeholder="02-0002-60001"
                             labelClass="text-lg font-medium" small />
                     </div>
                 </section>
@@ -42,7 +50,7 @@
                     <div class="grid grid-cols-2 w-full gap-5">
                         <x-form.input label="Email" name_id="email" placeholder="example@gmail.com"
                             labelClass="text-lg font-medium" small />
-                        <x-form.input label="Student No" type="text" name_id="student_no" placeholder="02-0002-60001"
+                        <x-form.input label="Phone" type="text" name_id="phone" placeholder="+63"
                             labelClass="text-lg font-medium" small />
                     </div>
                     <div class="grid grid-cols-2 w-full gap-5">

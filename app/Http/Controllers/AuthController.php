@@ -103,7 +103,7 @@ class AuthController extends Controller
 
         // Generate QR Code
         $qr_code = 'QR_' . Str::random(10) . '_' . Str::random(10);
-
+        
         // Check if a file is uploaded
         if ($request->hasFile('profile_image')) {
             $image = $request->file('profile_image');
@@ -112,14 +112,14 @@ class AuthController extends Controller
         } else {
             // Use external image links based on gender
             $profile_image = ($data['gender'] === 'male') 
-                ? 'https://t3.ftcdn.net/jpg/04/43/94/64/360_F_443946404_7GUoIGZeyx7R7ymCicI3k0xPnrMoKDek.jpg' 
-                : 'https://fuuastisb.edu.pk/Business%20Administration/Default-Profile-Female.jpg';
+            ? 'https://t3.ftcdn.net/jpg/04/43/94/64/360_F_443946404_7GUoIGZeyx7R7ymCicI3k0xPnrMoKDek.jpg' 
+            : 'https://fuuastisb.edu.pk/Business%20Administration/Default-Profile-Female.jpg';
         }
-
+        
         $request->merge([
             'image_url' => $profile_image,
         ]);
-
+        
         //send the image link to the controller
         $file_records = $fileController->store($request);
 
@@ -129,7 +129,7 @@ class AuthController extends Controller
             'description' => 'User ' . $data['lastname'] . ' ' . substr($data['firstname'], 0, 1) .  '. \'s profile',
             'file_id' => $file_id,
         ]);
-
+        
         $user = User::create([
             'firstname' => $data['firstname'],
             'middlename' => $data['middlename'],
@@ -146,6 +146,7 @@ class AuthController extends Controller
             'emergency_contact_address' => $data['emergency_contact_address'],
             'qr_code' => $qr_code,
             'profile_id' => $profile_record->id, // Save external image URL or uploaded image URL
+            'school_id' => $request->school + 1,
             'expiry_date' => Carbon::now()->addMonths(3),
         ]);
 

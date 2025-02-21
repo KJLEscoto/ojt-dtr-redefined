@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('description');
             $table->string('image');
-            $table->string('is_featured');
+            $table->string('is_featured')->nullable();
             $table->foreignId('file_id')->nullable()->constrained('files');
             $table->timestamps();
         });

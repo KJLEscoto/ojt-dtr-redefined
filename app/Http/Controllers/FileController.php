@@ -37,22 +37,22 @@ class FileController extends Controller
     {
         try {
             DB::beginTransaction();
-
+            
             $request->validate([
                 'file' => 'nullable|file', // File input is optional
                 'image_url' => 'nullable|url', // Allow image URLs
             ]);
-
+            
             $accessToken = $this->token();
             if (!$accessToken) {
                 return response()->json(['error' => 'Failed to retrieve access token'], 500);
             }
-
+            
             $file = null;
             $fileName = null;
             $fileSize = null;
             $mimeType = null;
-
+            
             // **Handle file upload**
             if ($request->hasFile('file')) {
                 $file = $request->file('file');
@@ -60,6 +60,7 @@ class FileController extends Controller
                 $fileName = Str::random(20) . '.' . $fileExtension; // Generate random name with extension
                 $fileSize = $file->getSize();
                 $mimeType = $file->getClientMimeType();
+
             } 
             // **Handle image URL**
             elseif ($request->image_url) {
@@ -73,12 +74,12 @@ class FileController extends Controller
                 $fileName = basename(parse_url($imageUrl, PHP_URL_PATH));
                 $tempFilePath = storage_path('app/temp_' . $fileName);
                 file_put_contents($tempFilePath, $imageContents); // Save to temp file
-
+                
                 // Get MIME type
                 $finfo = finfo_open(FILEINFO_MIME_TYPE);
                 $mimeType = finfo_file($finfo, $tempFilePath);
                 finfo_close($finfo);
-
+                
                 $fileSize = filesize($tempFilePath);
                 $file = new \Illuminate\Http\File($tempFilePath); // Convert to Laravel file
             } else {
@@ -86,14 +87,14 @@ class FileController extends Controller
             }
 
             $folderId = config('services.google.folder_id');
-
+            
             // Step 1: Create metadata
             $metadata = [
                 'name' => $fileName,
                 'mimeType' => $mimeType,
                 'parents' => [$folderId],
             ];
-
+            
             // Step 2: Upload file in multipart request
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $accessToken,
@@ -120,12 +121,11 @@ class FileController extends Controller
             // // Generate Google Drive direct file link
             // $fileLink = "https://drive.google.com/uc?id=" . $fileId;
             // Generate the new Google Drive direct image link format
-            $timestamp = time(); // Current timestamp
-            $fileLink = "https://lh3.googleusercontent.com/d/{$fileId}=s220?t={$timestamp}";
+            $fileLink = "https://lh3.googleusercontent.com/d/{$fileId}";
 
             // Store in database
             $fileRecord = File::create([
-                'description' => $fileName,
+                'description' => $fileId,
                 'path' => $fileLink, // Store the direct link
                 'type' => $mimeType,
                 'size' => $fileSize,
@@ -199,18 +199,15 @@ class FileController extends Controller
     if (!$accessToken) {
         return response()->json(['error' => 'Failed to retrieve access token'], 500);
     }
-    
-    
+
     $filePath = $request->file('file')->getPathname();
     $fileMimeType = $request->file('file')->getClientMimeType();
     
     // // Extract fileId from Google Drive URL if needed
     // preg_match('/id=([a-zA-Z0-9_-]+)/', $fileId, $matches);
     // $fileId = $matches[1] ?? null;
-
-    // Example usage:
-    $driveUrl = "https://lh3.googleusercontent.com/d/19HiyrjiH3mTXXUjOzb7hqUsdH0_-4OJC=s220?t=1740097147";
-    $fileId = $this->extractDriveFileId($driveUrl);
+    
+    //$fileId = $this->extractDriveFileId($fileId);
 
     if ($fileId) {
         echo "Extracted File ID: " . $fileId;
@@ -243,6 +240,8 @@ class FileController extends Controller
         ])->get("https://www.googleapis.com/drive/v3/files/{$fileId}?fields=id,name,mimeType,webViewLink,webContentLink");
         
         $fileData = json_decode($fileInfo->body(), true);
+
+        //@dd($fileData['webViewLink'], $fileData['webContentLink']);
         
     return response()->json([
         'message' => 'File updated successfully',
@@ -250,13 +249,19 @@ class FileController extends Controller
             'id' => $fileData['id'],
             'name' => $fileData['name'],
             'mimeType' => $fileData['mimeType'],
-            'preview_url' => $fileData['webViewLink'] ?? null, // Google Drive preview URL
+            'preview_url' => isset($fileData['webViewLink']) 
+                ? preg_replace('/drive\.google\.com\/file\/d\/(.*?)\/view.*/', 'lh3.googleusercontent.com/d/$1=s220', $fileData['webViewLink'])
+                : null,
             'download_url' => $fileData['webContentLink'] ?? null, // Direct download link
         ]
     ]);
 }
 
 function extractDriveFileId($url) {
+    if (!is_string($url) || empty($url)) {
+        return null; // Return null if $url is not a valid string
+    }
+
     $patterns = [
         '/\/d\/([a-zA-Z0-9_-]+)/', // Matches "/d/FILE_ID"
         '/id=([a-zA-Z0-9_-]+)/',   // Matches "?id=FILE_ID"
@@ -270,9 +275,6 @@ function extractDriveFileId($url) {
 
     return null; // Return null if no match is found
 }
-
-
-
     /**
      * Delete a file from Google Drive.
      */

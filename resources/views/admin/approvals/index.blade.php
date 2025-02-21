@@ -32,28 +32,29 @@
                         <th><input type="checkbox" id="select-all" class="cursor-pointer"></th>
                         <th>Name</th>
                         <th>Title</th>
+                        <th>DTR</th>
                         <th>Date Requested</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    {{-- @php
-                        $approvals = collect(range(1, 10))->map(fn($i) => [
-                            'id' => $i,
-                            'name' => 'John Doe ' . $i,
-                            'title' => 'Request for Approval ' . $i,
-                            'date_requested' => now()->subDays($i)->format('Y-m-d'),
-                        ])->sortByDesc('date_requested');
-                    @endphp --}}
+                    @php
+                        $pendingApprovals = collect($approvals)->where('status', 'pending');
+                    @endphp
 
-                    @forelse ($approvals as $approval)
-                        @if($approval['status'] === 'pending')
-                            <tr class="border hover:bg-gray-50 *:px-6 *:py-4 row-item *:text-nowrap" data-id="{{ $approval['id'] }}">
+                    @if ($pendingApprovals->isNotEmpty())
+                        @foreach ($pendingApprovals as $approval)
+                            <tr class="border hover:bg-gray-50 *:px-6 *:py-4 row-item *:text-nowrap"
+                                data-id="{{ $approval['id'] }}">
                                 <td>
-                                    <input type="checkbox" class="row-checkbox cursor-pointer" value="{{ $approval['id'] }}">
+                                    <input type="checkbox" class="row-checkbox cursor-pointer"
+                                        value="{{ $approval['id'] }}">
                                 </td>
                                 <td class="capitalize">{{ $approval['name'] }}</td>
                                 <td>{{ $approval['title'] }}</td>
+                                <td class="font-semibold text-orange-600">
+                                    {{ \Carbon\Carbon::createFromDate($approval['year'], $approval['month'])->format('F Y') }}
+                                </td>
                                 <td>{{ $approval['date_requested'] }}</td>
                                 <td class="hidden">{{ $approval['month'] }}</td>
                                 <td class="hidden">{{ $approval['year'] }}</td>
@@ -61,7 +62,9 @@
                                 <td class="flex items-center gap-2">
                                     
                                     <div class="relative group">
-                                        <button class="view-btn px-2 py-1 bg-blue-500 text-white rounded flex items-center justify-center gap-1" data-id="{{ $approval['id'] }}">
+                                        <button
+                                            class="view-btn px-2 py-1 bg-blue-500 text-white rounded flex items-center justify-center gap-1"
+                                            data-id="{{ $approval['id'] }}">
                                             <span class="basil--eye-solid w-6 h-6"></span>
                                             <span
                                                 class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition">
@@ -71,7 +74,9 @@
                                     </div>
                                 
                                     <div class="relative group">
-                                        <button class="approve-btn px-2 py-1 bg-green-500 text-white rounded flex items-center justify-center gap-1" data-id="{{ $approval['id'] }}">
+                                        <button
+                                            class="approve-btn px-2 py-1 bg-green-500 text-white rounded flex items-center justify-center gap-1"
+                                            data-id="{{ $approval['id'] }}">
                                             <span class="uil--check w-6 h-6"></span>
                                             <span
                                                 class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition">
@@ -79,24 +84,25 @@
                                             </span>
                                         </button>
                                     </div>
-                                
+
                                     <div class="relative group">
-                                        <button class="decline-btn px-2 py-1 bg-red-500 text-white rounded flex items-center justify-center gap-1" data-id="{{ $approval['id'] }}">
+                                        <button
+                                            class="decline-btn px-2 py-1 bg-red-500 text-white rounded flex items-center justify-center gap-1"
+                                            data-id="{{ $approval['id'] }}">
                                             <span class="iconamoon--close-light w-6 h-6"></span>
                                             <span
                                                 class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-800 rounded opacity-0 group-hover:opacity-100 transition">
-                                                Decline
-                                            </span>
-                                        </button>
                                     </div>
                                 </td>
                             </tr>
-                        @endif
-                    @empty
-                        <tr>
-                            <td colspan="5" class="text-center">No Data Available.</td>
+                        @endforeach
+                    @else
+                        <tr class="border text-nowrap text-center">
+                            <td colspan="6" class="text-center py-4 text-sm font-semibold text-gray-600 select-none">
+                                Nothing to see here.
+                            </td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>
@@ -182,9 +188,9 @@
         let name = cells[1] ? cells[1].textContent.trim() : "N/A";
         let requestType = cells[2] ? cells[2].textContent.trim() : "N/A";
         let date = cells[3] ? cells[3].textContent.trim() : "N/A";
-        let month = cells[4] ? cells[4].textContent.trim() : "N/A";
-        let year = cells[5] ? cells[5].textContent.trim() : "N/A";
-        let user_id = cells[6] ? cells[6].textContent.trim() : "N/A";
+        let month = cells[5] ? cells[5].textContent.trim() : "N/A";
+        let year = cells[6] ? cells[6].textContent.trim() : "N/A";
+        let user_id = cells[7] ? cells[7].textContent.trim() : "N/A";
 
         // Get ID from data attributes (assuming it's stored in <td> or <tr>)
         let requestId = row.dataset.id || this.dataset.id; 

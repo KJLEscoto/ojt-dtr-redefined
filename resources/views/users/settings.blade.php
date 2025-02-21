@@ -27,19 +27,17 @@
             <div class="flex flex-col lg:!gap-7 gap-5 mt-5 h-full">
                 <section class="flex flex-col gap-5 w-full p-7 border border-gray-200 rounded-lg bg-white">
                     <div class="flex flex-col items-center gap-5">
-                        
-                       @php
-                           echo $image_url;
-                       @endphp
                         <div class="h-auto w-auto">
                             <img id="imagePreview" 
-                                src="{{$image_url}}" alt="Profile Image"
+                                src="{{$image_url . '?t=' . time()}}" alt="Profile Image"
                                 class="lg:!w-80 md:!w-60 w-40 lg:!h-80 md:!h-60 h-40 border border-[#F57D11] shadow rounded-full" />
                         </div>
                         <input type="file" id="uploadButton" name="file" class="hidden">
                         <label for="uploadButton" class="px-16 py-3 border rounded-full text-[#F57D11] hover:border-[#F57D11] animate-transition flex items-center justify-center gap-2 lg:text-sm text-xs cursor-pointer">Upload</label>
-                        <x-form.section-title title="Personal Information" />
+                        
                     </div>
+                    
+                    <x-form.section-title title="Personal Information" />
                     <div class="grid md:grid-cols-3 w-full gap-5">
                         <x-form.input label="First Name" type="text" name_id="firstname" placeholder="John"
                             value="{{ $user->firstname }}" labelClass="text-lg font-medium" small />
@@ -59,8 +57,19 @@
                     <div class="grid grid-cols-2 w-full gap-5">
                         <x-form.input label="Address" type="text" name_id="address" placeholder="Davao City"
                             value="{{ $user->address }}" labelClass="text-lg font-medium" small />
-                        <x-form.input label="School" type="text" name_id="school" placeholder="School name"
-                            value="{{ $user->school }}" labelClass="text-lg font-medium" small />
+                            @php
+                            $schools = \App\Models\School::get();
+                            $user_school = Auth::user(); // Get the logged-in user's school ID
+                        
+                            $school_options = [];
+                            foreach($schools as $school){
+                                $school_options[$school->id] = $school->description;
+                            }
+                        @endphp
+                        <x-form.input label="School" name_id="school" placeholder="Select a school" small type="select"
+                            :options="$school_options" :value="$user_school->school_id" />
+                            {{-- <x-form.input label="School" type="text" name_id="school" placeholder="School name"
+                            value="{{ $user->school }}" labelClass="text-lg font-medium" small /> --}}
                     </div>
                 </section>
 

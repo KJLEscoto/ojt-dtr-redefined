@@ -57,8 +57,19 @@
                     <div class="grid grid-cols-2 w-full gap-5">
                         <x-form.input label="Address" type="text" name_id="address" placeholder="Davao City"
                             value="{{ $user->address }}" labelClass="text-lg font-medium" small />
-                        <x-form.input label="School" type="text" name_id="school" placeholder="School name"
-                            value="{{ $user->school }}" labelClass="text-lg font-medium" small />
+                        @php
+                            $schools = \App\Models\School::get();
+                            $user_school = \App\Models\School::where('id', $user->school)->first();
+
+                            $school_options = [];
+                            foreach($schools as $school){
+                                $school_options[] = $school['description'];
+                            }
+                        @endphp
+                        <x-form.input label="School" name_id="school" placeholder="{{$user_school->description}}" small type="select"
+                            :options="$school_options" :value="$user_school->school_id" />
+                        {{-- <x-form.input label="School" type="text" name_id="school" placeholder="School name"
+                            value="{{ \App\Models\School::where('id', $user->school)->first()->description ?? 'No school' }}" labelClass="text-lg font-medium" small /> --}}
                     </div>
                 </section>
 

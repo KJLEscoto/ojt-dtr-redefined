@@ -82,24 +82,27 @@
                     </div>
 
                     <article class="wrapper py-10">
+                        @php
+                            $schools = \App\Models\School::get();
+                        @endphp
                         <div class="marquee">
                             <div class="marquee__group">
                                 @for ($i = 1; $i <= 3; $i++)
-                                    <x-image path="{{ asset('/resources/img/school-logo/rweb.png') }}" />
-                                    <x-image path="{{ asset('/resources/img/school-logo/sti.png') }}" />
-                                    <x-image path="{{ asset('/resources/img/school-logo/addu.png') }}" />
-                                    <x-image path="{{ asset('/resources/img/school-logo/hcdc.png') }}" />
-                                    <x-image path="{{ asset('/resources/img/school-logo/um.png') }}" />
+                                @foreach ($schools as $school)
+                                    @if ($school['is_featured'] == 'on')
+                                        <x-image path="{{ \App\Models\File::where('id', $school['file_id'])->first()['path'] }}" />
+                                    @endif
+                                @endforeach
                                 @endfor
                             </div>
 
                             <div aria-hidden="true" class="marquee__group">
                                 @for ($i = 1; $i <= 3; $i++)
-                                    <x-image path="{{ asset('/resources/img/school-logo/rweb.png') }}" />
-                                    <x-image path="{{ asset('/resources/img/school-logo/sti.png') }}" />
-                                    <x-image path="{{ asset('/resources/img/school-logo/addu.png') }}" />
-                                    <x-image path="{{ asset('/resources/img/school-logo/hcdc.png') }}" />
-                                    <x-image path="{{ asset('/resources/img/school-logo/um.png') }}" />
+                                @foreach ($schools as $school)
+                                    @if ($school['is_featured'] == 'on')
+                                        <x-image path="{{ \App\Models\File::where('id', $school['file_id'])->first()['path'] }}" />
+                                    @endif
+                                @endforeach
                                 @endfor
                             </div>
                         </div>

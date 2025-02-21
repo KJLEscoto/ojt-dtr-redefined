@@ -50,10 +50,28 @@
                                     <section class="font-bold text-lg">{{ $history['timeFormat'] }}</section>
                                     <p class="text-sm font-medium text-gray-700">{{ $history['datetime'] }}</p>
                                 </div>
-                            @endif
-                        </section>
-                        
-                        @endforeach
+                                @if ($history['description'] === 'time in')
+                                    <div class="flex items-center gap-1 select-none text-sm font-semibold">
+                                        <p
+                                            class="{{ isset($history['extra_description']) && $history['extra_description'] === 'late' ? 'text-red-500 font-bold' : 'text-green-500' }}">
+                                            Time
+                                            in{{ isset($history['extra_description']) && $history['extra_description'] === 'late' ? ' | Late' : '' }}
+                                        </p>
+                                    </div>
+                                @else
+                                    <div class="text-red-500 flex items-center gap-1 select-none text-sm font-semibold">
+                                        <p>Time out</p>
+                                    </div>
+                                @endif
+                            </section>
+                        @empty
+                            <div
+                                class="w-full h-full flex justify-center items-center gap-2 text-sm font-semibold text-gray-600">
+                                Go <span class="text-green-500">Time in</span> / <span class="text-red-500">Time
+                                    out</span>
+                                to reflect.
+                            </div>
+                        @endforelse
                     </div>
                 </div>
             </section>
@@ -75,7 +93,7 @@
                     </section>
                     <section class="flex md:flex-row flex-col items-start flex-wrap text-wrap sm:gap-5 gap-x-2">
                         <h1 class="text-base font-semibold">School</h1>
-                        <p class=" text-base ">{{ $user->school }}</p>
+                        <p class=" text-base ">{{ \App\Models\School::where('id', $user->school)->first()->description }}</p>
                     </section>
                     <section class="flex md:flex-row flex-col items-start flex-wrap text-wrap sm:gap-5 gap-x-2">
                         <h1 class="text-base font-semibold">Account Started</h1>
@@ -107,16 +125,18 @@
         <div class="p-7 rounded-lg border border-gray-200 bg-white w-full">
             <div class="flex w-full justify-between gap-2 items-end mb-3">
                 <x-page-title title="Request Status" />
-                <a href="{{ route('users.request') }}"
-                    class="lg:!text-sm text-xs text-[#F53C11] hover:underline underline-offset-4 cursor-pointer font-semibold">
-                    View All
-                </a>
+                @if ($downloadRequest->count() != 0)
+                    <a href="{{ route('users.request') }}"
+                        class="lg:!text-sm text-xs text-[#F53C11] hover:underline underline-offset-4 cursor-pointer font-semibold">
+                        View All
+                    </a>
+                @endif
             </div>
             <hr>
 
             {{-- dummy data | sort from latest --}}
             <div class="overflow-auto h-[250px] w-full">
-                @foreach ($downloadRequest as $request)
+                @forelse ($downloadRequest as $request)
                     <a href="{{ route('users.request') }}"
                         class="px-5 py-3 hover:bg-gray-100 border-b border-gray-300 w-full flex items-center justify-between gap-5">
 
@@ -149,7 +169,12 @@
                             <p class="text-sm font-semibold text-gray-600">{{Carbon\Carbon::parse($request['created_at'])->format('M d, Y')}}</p>
                         </div>
                     </a>
-                @endforeach
+                @empty
+                    <div class="flex items-center justify-center h-full w-full text-gray-600 font-semibold text-sm">You
+                        don't have DTR request yet. <a href="{{ route('users.dtr') }}"
+                            class="underline underline-offset-4 hover:text-[#F53C11] cursor-pointer ml-2">Request
+                            Now.</a></div>
+                @endforelse
 
                 {{-- <p class="flex items-center justify-center h-full w-full font-semibold text-gray-500">You don't have
                     request yet.</p> --}}

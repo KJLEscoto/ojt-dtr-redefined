@@ -75,6 +75,8 @@
 
     <div class="h-full w-full">
         <x-form.container routeName="admin.users.create.post" method="POST" className="h-auto w-full flex flex-col gap-5">
+        @csrf
+        @method('POST')
 
             @if (session('success'))
                 <x-modal.flash-msg msg="success" />
