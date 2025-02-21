@@ -4,7 +4,7 @@
 <x-main-layout>
 
     <div class="w-full">
-        <x-form.container routeName="users.settings.update" method="POST" className="h-auto w-full flex flex-col gap-5">
+        <x-form.container routeName="users.settings.update" method="POST" className="h-auto w-full flex flex-col gap-5" enctype="multipart/form-data">
             @method('PUT')
 
             @if (session('success'))
@@ -27,13 +27,19 @@
             <div class="flex flex-col lg:!gap-7 gap-5 mt-5 h-full">
                 <section class="flex flex-col gap-5 w-full p-7 border border-gray-200 rounded-lg bg-white">
                     <div class="flex flex-col items-center gap-5">
+                        
+                       @php
+                           echo $image_url;
+                       @endphp
                         <div class="h-auto w-auto">
-                            <x-image path="resources/img/default-male.png"
-                                className="lg:!w-80 md:!w-60 w-40 lg:!h-80 md:!h-60 h-40 border border-[#F57D11] shadow rounded-full" />
+                            <img id="imagePreview" 
+                                src="{{$image_url}}" alt="Profile Image"
+                                class="lg:!w-80 md:!w-60 w-40 lg:!h-80 md:!h-60 h-40 border border-[#F57D11] shadow rounded-full" />
                         </div>
-                        <x-button tertiary button leftIcon="bx--image" label="Change" className="px-6" />
+                        <input type="file" id="uploadButton" name="file" class="hidden">
+                        <label for="uploadButton" class="px-16 py-3 border rounded-full text-[#F57D11] hover:border-[#F57D11] animate-transition flex items-center justify-center gap-2 lg:text-sm text-xs cursor-pointer">Upload</label>
+                        <x-form.section-title title="Personal Information" />
                     </div>
-                    <x-form.section-title title="Personal Information" />
                     <div class="grid md:grid-cols-3 w-full gap-5">
                         <x-form.input label="First Name" type="text" name_id="firstname" placeholder="John"
                             value="{{ $user->firstname }}" labelClass="text-lg font-medium" small />
@@ -94,3 +100,21 @@
         </x-form.container>
     </div>
 </x-main-layout>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const uploadButton = document.querySelector("#uploadButton");
+        const imagePreview = document.querySelector("#imagePreview");
+
+        uploadButton.addEventListener("change", function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+</script>

@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DtrDownloadRequestController;
 use App\Http\Controllers\DtrSummaryController;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PDFController;
 use App\Http\Controllers\UserController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\RankingController;
 use App\Http\Controllers\SearchController;
 use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Broadcast;
 
 // Route::get('/register', function () {
@@ -36,7 +38,6 @@ Route::get('/test', function () {
 // Route::get('/admin/dashboard', function () {
 //     return view('admin.dashboard');
 // })->name('show.admin-dashboard');
-
 
 Route::middleware('guest')->group(function () {
 
@@ -96,7 +97,7 @@ Route::middleware(['auth', 'user_role:admin'])->group(function (){
     Route::post('/admin-dtr-batch-decline', [DtrDownloadRequestController::class, 'batchDecline'])->name('admin.dtr.batch.decline');
 
     Route::get('/read-notifications-index', [NotificationController::class, 'readAdminNotification'])->name('admin.recieve.notification');
-    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'readAdminNotification'])->name('user.recieve.notification');
+    Route::post('/notifications/{id}/mark-as-read', [NotificationController::class, 'readAdminNotification'])->name('admin.recieve.notification');
 
     //scanner user validation data
     Route::get('scanner/{qr_code}', [UserController::class, 'AdminScannerValidation'])->name('admin.scanner.validation');
@@ -181,7 +182,7 @@ Route::get('/admin/login', function () {
 Route::get('/notification-page', [NotificationController::class, 'readUserNotification'])->name('user.recieve.notification');
 
 
-Route::post('/notifications/{id}/archive', [NotificationController::class, 'archiveAdminNotification'])->name('user.recieve.notification');
+Route::post('/notifications/{id}/archive', [NotificationController::class, 'archiveAdminNotification'])->name('user.recieve.notification.archive');
 
 //test routes
 
@@ -218,7 +219,25 @@ Route::post("/pusher/auth", function (Request $request) {
     return response()->json(["message" => "Forbidden"], 403);
 });
 
-
+Route::view('/read-form', 'admin.files.show')->name('admin.files.show');
+Route::view('/upload-form', 'admin.files.index')->name('admin.files');
 Route::view('/forbidden', 'forbidden')->name('forbidden');
-
 Route::view('/admin/schools', 'admin.schools.index')->name('admin.schools');
+
+//files
+//Route::resource('/files', FileController::class);
+
+Route::prefix('files')->group(function () {
+    Route::get('/', [FileController::class, 'index'])->name('files.index');
+    Route::post('/', [FileController::class, 'store'])->name('files.store');
+    Route::get('/{file}', [FileController::class, 'show'])->name('files.show');
+    Route::delete('/{file}', [FileController::class, 'destroy'])->name('files.destroy');
+});
+
+// Route::get('/optimize', function () {
+//     Artisan::call('optimize');
+//     Artisan::call('route:cache');
+//     Artisan::call('view:clear');
+//     Artisan::call('cache:clear');
+//     return 1;
+// })->name('system.optimize');

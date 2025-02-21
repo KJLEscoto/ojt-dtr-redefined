@@ -761,7 +761,9 @@
                 <nav class="w-full flex flex-col gap-10">
                     <section class="w-full flex flex-col gap-2 justify-center items-center px-7">
                         <div class="w-auto h-auto">
-                            <x-image path="resources/img/default-male.png"
+                            {{-- <x-image path="resources/img/default-male.png"
+                                className="h-24 w-24 shadow-md border border-[#F57D11] rounded-full" /> --}}
+                            <x-image path=""
                                 className="h-24 w-24 shadow-md border border-[#F57D11] rounded-full" />
                         </div>
                         <h1 class="font-bold text-lg capitalize text-center text-ellipsis">
@@ -811,9 +813,15 @@
                         <x-logo />
                     </div>
 
+                    @php
+                        $image_url = App\Models\File::where('id', Auth::user()->profile_id)->first()?->path;
+                        echo $image_url;
+                    @endphp
+
                     <section class="w-full flex flex-col gap-2 justify-center items-center px-7">
                         <div class="w-auto h-auto">
-                            <x-image path="resources/img/default-male.png"
+                            asdasdasd
+                            <x-image path="{{App\Models\File::where('id', App\Models\Profile::where('id', Auth::user()->profile_id)->first()->id)->first()->path}}"
                                 className="h-32 w-32 shadow-md border border-[#F57D11] rounded-full" />
                         </div>
                         <h1 class="font-bold text-lg capitalize text-center text-ellipsis">

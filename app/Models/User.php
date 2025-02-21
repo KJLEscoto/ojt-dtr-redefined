@@ -81,4 +81,12 @@ class User extends Authenticatable
     {
         return $this->hasMany(Notification::class,'user_id');
     }
+
+    public function profiles(){
+        return $this->belongsTo(Profile::class, 'profile_id');
+    }
+
+    public function schools(){
+        return $this->belongsTo(School::class, 'school_id');
+    }
 }

@@ -11,6 +11,9 @@ use App\Http\Controllers\HistoryController;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use App\Mail\EmailShiftNotification;
+use App\Models\File;
+use App\Models\Profile;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -26,11 +29,29 @@ class UserController extends Controller
         return view('users.profile.index', compact('users'));
     }
 
-    public function showSettings()
+    public function showSettings(FileController $fileController)
     {
         $user = Auth::user();
+
+        $image_url = File::where('id', Profile::where('id', $user->profile_id)->value('file_id'))->first()->path;
+
+        // $google_drive_link = $user_files_paths;
+        // preg_match('/id=([a-zA-Z0-9_-]+)/', $google_drive_link, $matches);
+        // $file_id = $matches[1] ?? null;
+
+        // echo $file_id; // Outputs: 1xe5yHio0kSRdKOhwMxMxIJ_Z4AhcG_ln
+        $image_url = isset($image_url) 
+        ? (str_contains($image_url, 'drive.google.com/uc?id=') 
+            ? preg_replace('/drive\.google\.com\/uc\?id=([a-zA-Z0-9_-]+)/', 'lh3.googleusercontent.com/d/$1=s220?t=' . time(), $image_url) 
+            : $image_url
+        ) 
+        : asset('resources/img/default-male.png');
+
+        //https://drive.google.com/thumbnail?id=1zSM0Y_I9m5YcYwLZS-J63la5uLjxd4xQ&timestamp=12345
+
         return view('users.settings', [
             'user' => $user,
+            'image_url' => $image_url,
         ]);
     }
 
@@ -473,19 +494,44 @@ class UserController extends Controller
         return view('users.edit', compact('user'));
     }
 
-    public function update(Request $request)
+    public function update(Request $request, FileController $fileController)
     {
-        $user = User::where('id', $request->user_id)->first();
+        try {
+            DB::beginTransaction();
+            
+            $user = User::find($request->user_id);
+            if (!$user) {
+                return back()->with('invalid', 'The input is invalid. Please try again!');
+            }
+
+            
+            
+            if ($request->hasFile('file')) {
+                $file = $request['file'];
+                $fileFormat = $user->profile_id === null
+                ? $fileController->store($request)
+                : $fileController->edit($request, Profile::find($user->profile_id)?->files->path);
+            }
+            $image_url = $fileFormat->original['data']['preview_url'];
+            
+            //@dd($request->all(), Profile::find($user->profile_id)?->files->path);
         
-        if (is_null($user)) {
-            return back()->with('invalid', 'The input is invalid please try again!');
-        }
 
-        // Exclude user_id from the request data
-        $data = $request->except('user_id');
-
-        $user->update($data);
-        return back()->with('update', 'Updated Successfully!');
+            $user->fill($request->only([
+                'firstname', 'lastname', 'middlename', 'email', 'phone', 'gender',
+                'address', 'school', 'student_no', 'emergency_contact_fullname',
+                'emergency_contact_number', 'emergency_contact_address'
+            ]));
+        
+            $user->save();
+        
+            DB::commit();
+            return redirect()->route('users.settings')->with('update', 'Updated Successfully! If you uploaded an image, the Admin will review it first.');
+            //return back()->with('update', 'Updated Successfully!')->with(['image_url' => $image_url]);
+        } catch (\Exception $ex) {
+            DB::rollBack();
+            return back()->with('invalid', $ex->getMessage());
+        }        
     }
 
     public function destroy($id)
@@ -542,6 +588,4 @@ class UserController extends Controller
             'user' => $user,
         ]);
     }
-
-
 }

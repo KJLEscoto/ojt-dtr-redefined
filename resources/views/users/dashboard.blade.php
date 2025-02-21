@@ -42,22 +42,13 @@
                     <h1 class="font-semibold">Logged History</h1>
                 </div>
                 <div class="md:!h-full !h-60 w-full bg-white overflow-auto rounded-b-lg border">
-                    <div class=" text-black flex flex-col items-start justify-start">
-                        @foreach ($histories as $history)
-                        <section class="px-7 py-5 w-full flex justify-between items-center border-b border-gray-200">
-                            <div>
-                                <section class="font-bold text-lg">{{ $history['timeFormat'] }}</section>
-                                <p class="text-sm font-medium text-gray-700">{{ $history['datetime'] }}</p>
-                            </div>
-                            @if ($history['description'] === 'time in')
-                                <div class="flex items-center gap-1 select-none text-sm font-semibold">
-                                    <p class="{{ isset($history['extra_description']) && $history['extra_description'] === 'late' ? 'text-red-500 font-bold' : 'text-green-500' }}">
-                                        Time in{{ isset($history['extra_description']) && $history['extra_description'] === 'late' ? ' | Late' : '' }}
-                                    </p>
-                                </div>
-                            @else
-                                <div class="text-red-500 flex items-center gap-1 select-none text-sm font-semibold">
-                                    <p>Time out</p>
+                    <div class=" text-black flex flex-col items-start justify-start h-full">
+                        @forelse ($histories as $history)
+                            <section
+                                class="px-7 py-5 w-full flex justify-between items-center border-b border-gray-200">
+                                <div>
+                                    <section class="font-bold text-lg">{{ $history['timeFormat'] }}</section>
+                                    <p class="text-sm font-medium text-gray-700">{{ $history['datetime'] }}</p>
                                 </div>
                             @endif
                         </section>
